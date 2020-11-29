@@ -1,0 +1,14 @@
+## Interface: 90002
+## Title: Details!: Slack Meter (plugin)
+## Notes: Show amount of damage avoidable your group take.
+## RequiredDeps: Details
+## Author: Sevenn
+## Version: v9.0.2
+## X-License: MIT
+## X-Curse-Project-ID: 00000
+## SavedVariablesPerCharacter: SlackMeterLog
+
+Libs\Load_Libs.xml
+
+Locale.lua
+Core.lua

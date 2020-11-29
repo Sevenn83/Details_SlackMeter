@@ -151,17 +151,6 @@ function EO:Debug(...)
     end
 end
 
-local function targetChanged(self, _, unitID)
-    local targetGUID = UnitGUID(unitID .. 'target')
-    if not targetGUID then return end
-
-    local npcID = select(6, strsplit('-', targetGUID))
-    if npcID == EO.orbID then
-        -- record pet's target to its owner
-        EO:RecordTarget(UnitGUID(self.unitID), targetGUID)
-    end
-end
-
 function EO:COMBAT_LOG_EVENT_UNFILTERED()
     local _, subEvent, _, sourceGUID, sourceName, sourceFlag, _, destGUID = CombatLogGetCurrentEventInfo()
     if (
@@ -235,21 +224,8 @@ function EO:RecordHit(unitGUID, targetGUID)
     end
 end
 
-function EO:CheckAffix()
-    local affix = select(2, C_ChallengeMode_GetActiveKeystoneInfo())
-    if affix and tContains(affix, 13) then
-        self:Debug("Explosive active")
-        self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
-        for _, frame in ipairs(self.eventFrames) do
-            frame:RegisterUnitEvent('UNIT_TARGET', frame.unitID, frame.unitID .. 'pet')
-        end
-    else
-        self:Debug("Explosive inactive")
-        self:UnregisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
-        for _, frame in ipairs(self.eventFrames) do
-            frame:UnregisterEvent('UNIT_TARGET')
-        end
-    end
+function SM:InitDataCollection()
+    self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
 end
 
 function EO:MergeCombat(to, from)
@@ -425,21 +401,13 @@ function EO:LoadHooks()
     self:CleanDiscardCombat()
 end
 
-function EO:OnInitialize()
+function SM:OnInitialize()
     -- load database
-    self.db = ExplosiveOrbsLog or {}
-    ExplosiveOrbsLog = self.db
+    self.db = SlackMeterLog or {}
+    SlackMeterLog = self.db
 
-    -- unit event frames
-    self.eventFrames = {}
-    for i = 1, 5 do
-        self.eventFrames[i] = CreateFrame('frame')
-        self.eventFrames[i]:SetScript('OnEvent', targetChanged)
-        self.eventFrames[i].unitID = (i == 5 and 'player' or ('party' .. i))
-    end
-
-    self:RegisterEvent('PLAYER_ENTERING_WORLD', 'CheckAffix')
-    self:RegisterEvent('CHALLENGE_MODE_START', 'CheckAffix')
+    self:RegisterEvent('PLAYER_ENTERING_WORLD', 'InitDataCollection')
+    self:RegisterEvent('CHALLENGE_MODE_START', 'InitDataCollection')
 
     self:SecureHook(Details, 'StartMeUp', 'LoadHooks')
 end
