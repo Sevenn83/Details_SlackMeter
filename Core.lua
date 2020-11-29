@@ -180,6 +180,24 @@ SM.Spells = {
     [322658] = true,      --- Expulsion d'acide (boss 3)
     [326281] = true,      --- Perte d'anima (boss 3)
     [326263] = true,      --- Perte d'anima (boss 3) 
+
+    --- De Other Side
+    [333250] = true,      --- Saccageur
+    [333790] = true,      --- Masque enragé
+    [334051] = true,      --- Eruption ténébreuse
+    [328729] = true,      --- Lotus noir
+    [332672] = true,      --- Tempete de lames
+    [323118] = true,      --- Barrage de sang (boss)
+    [331933] = true,      --- Détraqué
+    [331398] = true,      --- Condensateur instable
+    [332157] = true,      --- Accélération
+    [324010] = true,      --- Eruption (boss)
+    [323136] = true,      --- Tempête stellaire d'anima
+    [345498] = true,      --- Tempête stellaire d'anima
+    [340026] = true,      --- Gémissement de peine
+    [324090] = true,      --- Onde explosive déplacée (boss)
+    [334913] = true,      --- Maitre de la mort (boss)
+    [325691] = true,      --- Effondrement cosmique (boss)
 }
 
 SM.SpellsNoTank = {
@@ -189,10 +207,14 @@ SM.SpellsNoTank = {
 SM.Auras = {
     --- Mists of Turna Scithe
     [340160] = true,      --- Souffle radieux
+
+    --- De Other Side
+    [326171] = true,      --- Destruction de la réalité (boss)
 }
 
 SM.AurasNoTank = {
-
+    --- De Other Side
+    [333729] = true,      --- Garde-troll
 }
 
 -- Public APIs
