@@ -169,7 +169,6 @@ SM.Spells = {
     [323137] = true,      --- Pollen-stupéfiant (boss 1)
     [323250] = true,      --- Flaque d'anima (boss 1)
     [331721] = true,      --- Déluge de lances
-    [340160] = true,      --- Souffle radieux
     [340304] = true,      --- Sécrétions empoisonnées
     [340311] = true,      --- Bond écrasant
     [321828] = true,      --- Trois petits chats (boss 2)
@@ -188,7 +187,8 @@ SM.SpellsNoTank = {
 }
 
 SM.Auras = {
-    [321968] = true,      --- Pollen-stupéfiant
+    --- Mists of Turna Scithe
+    [340160] = true,      --- Souffle radieux
 }
 
 SM.AurasNoTank = {
