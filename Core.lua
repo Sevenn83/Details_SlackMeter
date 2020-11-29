@@ -22,7 +22,7 @@ local Details = _G.Details
 
 -- GLOBALS: SlackMeterLog
 
-SM.debug = true
+SM.debug = false
 SM.CustomDisplay = {
     name = L["Avoidable Damage Taken"],
     icon = 3565723,
@@ -32,7 +32,7 @@ SM.CustomDisplay = {
     target = false,
     author = "Sevenn",
     desc = L["Show how much avoidable damage was taken."],
-    script_version = 2,
+    script_version = 1,
     script = [[
         local Combat, CustomContainer, Instance = ...
         local total, top, amount = 0, 0, 0
@@ -102,7 +102,7 @@ SM.CustomDisplayAuras = {
     target = false,
     author = "Sevenn",
     desc = L["Show how many avoidable abilities hit players."],
-    script_version = 2,
+    script_version = 1,
     script = [[
         local Combat, CustomContainer, Instance = ...
         local total, top, amount = 0, 0, 0
@@ -110,11 +110,10 @@ SM.CustomDisplayAuras = {
             local CombatNumber = Combat:GetCombatNumber()
             local Container = Combat:GetContainer(DETAILS_ATTRIBUTE_MISC)
             for _, Actor in Container:ListActors() do
-                if player:IsGroupPlayer() then
-                    -- we only record the players in party
+                if Actor:IsGroupPlayer() then
                     local cnt, _ = _G.Details_SlackMeter:GetAuraRecord(CombatNumber, Actor:guid())
                     if cnt > 0 then
-                        CustomContainer:AddValue(player, cnt)
+                        CustomContainer:AddValue(Actor, cnt)
                     end
                 end
             end
@@ -200,9 +199,10 @@ SM.AurasNoTank = {
 
 function Engine:GetRecord(combatID, playerGUID)
     if SM.db[combatID] and SM.db[combatID][playerGUID] then
-        return SM.db[combatID][playerGUID].target or 0, SM.db[combatID][playerGUID].hit or 0
+
+        return SM.db[combatID][playerGUID].sum or 0, SM.db[combatID][playerGUID].cnt or 0, SM.db[combatID][playerGUID].spells
     end
-    return 0, 0
+    return 0, 0, {}
 end
 
 function Engine:GetAuraRecord(combatID, playerGUID)
@@ -361,15 +361,38 @@ function SM:MergeCombat(to, from)
         self:Debug("Merging combat %s into %s", from, to)
         if not self.db[to] then self.db[to] = {} end
         for playerGUID, tbl in pairs(self.db[from]) do
+            if not self.db[to][playerGUID] then
+                self.db[to][playerGUID] = {
+                    sum = 0,
+                    cnt = 0,
+                    spells = {},
+                    auras = {},
+                    auracnt = 0
+                }
+            end
 
-            --- todo : work here
+            self.db[to][playerGUID].sum = self.db[to][playerGUID].sum + (tbl.sum or 0)
+            self.db[to][playerGUID].cnt = self.db[to][playerGUID].cnt + (tbl.cnt or 0)
 
-            if type(tbl) == 'table' then
-                if not self.db[to][playerGUID] then
-                    self.db[to][playerGUID] = {}
-                end
-                self.db[to][playerGUID].target = (self.db[to][playerGUID].target or 0) + (tbl.target or 0)
-                self.db[to][playerGUID].hit = (self.db[to][playerGUID].hit or 0) + (tbl.hit or 0)
+            self.db[to][playerGUID].auracnt = self.db[to][playerGUID].auracnt + (tbl.auracnt or 0)
+
+
+            for spellId, spelltbl in pairs(tbl.spells) do
+                
+                if not self.db[to][playerGUID].spells[spellId] then self.db[to][playerGUID].spells[spellId] = {
+                    cnt = 0,
+                    sum = 0
+                } end
+                self.db[to][playerGUID].spells[spellId].cnt = self.db[to][playerGUID].spells[spellId].cnt + spelltbl.cnt
+                self.db[to][playerGUID].spells[spellId].sum = self.db[to][playerGUID].spells[spellId].sum + spelltbl.sum
+            end
+
+            for spellId, spelltbl in pairs(tbl.auras) do
+                
+                if not self.db[to][playerGUID].auras[spellId] then self.db[to][playerGUID].auras[spellId] = {
+                    cnt = 0
+                } end
+                self.db[to][playerGUID].auras[spellId].cnt = self.db[to][playerGUID].auras[spellId].cnt + spelltbl.cnt
             end
         end
     end
