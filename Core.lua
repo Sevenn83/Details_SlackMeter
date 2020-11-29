@@ -23,8 +23,8 @@ local Details = _G.Details
 -- GLOBALS: SlackMeter
 
 SM.debug = true
-EO.CustomDisplay = {
-    name = L["EAvoidable Damage Taken"],
+SM.CustomDisplay = {
+    name = L["Avoidable Damage Taken"],
     icon = 3565723,
     source = false,
     attribute = false,
@@ -103,6 +103,109 @@ EO.CustomDisplay = {
     ]],
 }
 
+DE.CustomDisplayAuras = {
+    name = L["Avoidable Abilities Taken"],
+    icon = 132311,
+    source = false,
+    attribute = false,
+    spellid = false,
+    target = false,
+    author = "Sevenn",
+    desc = L["Show how many avoidable abilities hit players."],
+    script_version = 1,
+    script = [[
+        local Combat, CustomContainer, Instance = ...
+        local total, top, amount = 0, 0, 0
+        if _G.Details_SlackMeter then
+            local Container = Combat:GetActorList(DETAILS_ATTRIBUTE_MISC)
+            for _, player in ipairs(Container) do
+                if player:IsGroupPlayer() then
+                    -- we only record the players in party
+                    local cnt, _ = _G.Details_SlackMeter:GetAuraRecord(Combat:GetCombatNumber(), player:guid())
+                    -- _G.Details_SlackMeter:Debug("guid %s target %s hit %s", player:guid() or 0, target or 0,hit or 0)
+                    if cnt > 0 then
+                        CustomContainer:AddValue(player, cnt)
+                    end
+                end
+            end
+            total, top = CustomContainer:GetTotalAndHighestValue()
+            amount = CustomContainer:GetNumActors()
+        end
+        return total, top, amount
+    ]],
+    tooltip = [[
+        local Actor, Combat, Instance = ...
+        local GameCooltip = GameCooltip
+        if _G.Details_SlackMeter then
+            local realCombat
+            for i = -1, 25 do
+                local current = Details:GetCombat(i)
+                if current and current:GetCombatNumber() == Combat.combat_counter then
+                    realCombat = current
+                    break
+                end
+            end
+            if not realCombat then return end
+            local sortedList = {}
+            _, spells = _G.Details_SlackMeter:GetAuraRecord(Combat:GetCombatNumber(), realCombat[1]:GetActor(Actor.nome):guid())
+            for spellID, spelldata in pairs(spells) do
+                tinsert(sortedList, {spellID, spelldata.cnt})
+            end
+            sort(sortedList, Details.Sort2)
+            local format_func = Details:GetCurrentToKFunction()
+            for _, tbl in ipairs(sortedList) do
+                local spellID, cnt = unpack(tbl)
+                local spellName, _, spellIcon = Details.GetSpellInfo(spellID)
+                GameCooltip:AddLine(spellName, format_func(_, cnt))
+                Details:AddTooltipBackgroundStatusbar()
+                GameCooltip:AddIcon(spellIcon, 1, 1, _detalhes.tooltip.line_height, _detalhes.tooltip.line_height)
+            end
+        end
+    ]],
+    total_script = [[
+        local value, top, total, Combat, Instance, Actor = ...
+        local format_func = Details:GetCurrentToKFunction()
+        if _G.Details_SlackMeter then
+            local cnt, _ = _G.Details_SlackMeter:GetAuraRecord(Combat:GetCombatNumber(), Actor.my_actor.serial)
+            return "" .. cnt
+        end
+        return ""
+    ]],
+}
+
+-- List spell to track
+SM.Spells = {
+ 	--- Mists of Turna Scithe
+    [321968] = true,      --- Pollen-stupéfiant
+    [323137] = true,      --- Pollen-stupéfiant (boss 1)
+    [323250] = true,      --- Flaque d'anima (boss 1)
+    [331721] = true,      --- Déluge de lances
+    [340160] = true,      --- Souffle radieux
+    [340304] = true,      --- Sécrétions empoisonnées
+    [340311] = true,      --- Bond écrasant
+    [321828] = true,      --- Trois petits chats (boss 2)
+    [336759] = true,      --- Balle aux prisonniers (boss 2)
+    [321893] = true,      --- Explosion givrante (boss 2)
+    [326022] = true,      --- Globule d'acide
+    [322655] = true,      --- Expulsion d'acide (boss 3)
+    [322654] = true,      --- Expulsion d'acide (boss 3)
+    [322658] = true,      --- Expulsion d'acide (boss 3)
+    [326281] = true,      --- Perte d'anima (boss 3)
+    [326263] = true,      --- Perte d'anima (boss 3) 
+}
+
+SM.SpellsNoTank ={
+
+}
+
+SM.Auras = {
+    [321968] = true,      --- Pollen-stupéfiant
+}
+
+SM.AurasNoTank = {
+
+}
+
 -- Public APIs
 
 function Engine:GetRecord(combatID, playerGUID)
@@ -140,33 +243,28 @@ end
 
 function SM:COMBAT_LOG_EVENT_UNFILTERED()
     local _, subEvent, _, sourceGUID, sourceName, sourceFlag, _, destGUID = CombatLogGetCurrentEventInfo()
-    if (
-        subEvent == 'SPELL_DAMAGE' or subEvent == 'RANGE_DAMAGE' or subEvent == 'SWING_DAMAGE' or
-        subEvent == 'SPELL_PERIODIC_DAMAGE' or subEvent == 'SPELL_BUILDING_DAMAGE'
-    ) then
-        local npcID = select(6, strsplit('-', destGUID))
-        if npcID == self.orbID then
-            if bit_band(sourceFlag, COMBATLOG_OBJECT_TYPE_PET) > 0 then
-                -- source is pet, don't track guardian which is automaton
-                local Combat = Details:GetCombat(0)
-                if Combat then
-                    local Container = Combat:GetContainer(_G.DETAILS_ATTRIBUTE_DAMAGE)
-                    local ownerActor = select(2, Container:PegarCombatente(sourceGUID, sourceName, sourceFlag, true))
-                    if ownerActor then
-                        -- Details implements two cache method of pet and its owner,
-                        -- one is in parser which is shared inside parser (damage_cache_petsOwners),
-                        -- it will be wiped in :ClearParserCache, but I have no idea when,
-                        -- the other is in container,
-                        -- which :PegarCombatente will try to fetch owner from it first,
-                        -- so in this case, simply call :PegarCombatente and use its cache,
-                        -- and no need to implement myself like parser
-                        sourceGUID = ownerActor:guid()
-                    end
-                end
-            end
-            EO:RecordHit(sourceGUID, destGUID)
-        end
-    end
+
+    local eventPrefix, eventSuffix = eventType:match("^(.-)_?([^_]*)$");
+
+    if (eventPrefix:match("^SPELL") or eventPrefix:match("^RANGE")) and eventSuffix == "DAMAGE" then
+		local spellId, spellName, spellSchool, sAmount, aOverkill, sSchool, sResisted, sBlocked, sAbsorbed, sCritical, sGlancing, sCrushing, sOffhand, _ = select(12,CombatLogGetCurrentEventInfo())
+		SM:SpellDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, sAmount)
+    elseif eventPrefix:match("^SWING") and eventSuffix == "DAMAGE" then
+        local aAmount, aOverkill, aSchool, aResisted, aBlocked, aAbsorbed, aCritical, aGlancing, aCrushing, aOffhand, _ = select(12,CombatLogGetCurrentEventInfo())
+        --- Not implemented
+		SM:SwingDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, aAmount)
+	elseif eventPrefix:match("^SPELL") and eventSuffix == "MISSED" then
+		local spellId, spellName, spellSchool, missType, isOffHand, mAmount  = select(12,CombatLogGetCurrentEventInfo())
+		if mAmount then
+			SM:SpellDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, mAmount)
+		end
+	elseif eventType == "SPELL_AURA_APPLIED" then
+		local spellId, spellName, spellSchool, auraType = select(12,CombatLogGetCurrentEventInfo())
+		SM:AuraApply(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, auraType)
+	elseif eventType == "SPELL_AURA_APPLIED_DOSE" then
+		local spellId, spellName, spellSchool, auraType, auraAmount = select(12,CombatLogGetCurrentEventInfo())
+		SM:AuraApply(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, auraType, auraAmount)
+	end
 end
 
 function SM:RecordTarget(unitGUID, targetGUID)
@@ -188,6 +286,54 @@ function SM:RecordTarget(unitGUID, targetGUID)
 
         self.db[self.overall][unitGUID].target = (self.db[self.overall][unitGUID].target or 0) + 1
     end
+end
+
+function SM:SpellDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, aAmount)
+    local unitGUID = dstGUID
+    if (SM.Spells[spellId] or (SM.SpellsNoTank[spellId] and UnitGroupRolesAssigned(dstName) ~= "TANK")) and UnitIsPlayer(dstName) then
+        if not self.db[self.current] then self.db[self.current] = {} end
+        if not self.db[self.current][unitGUID] then self.db[self.current][unitGUID] = {
+            sum = 0,
+            cnt = 0,
+            spells = {},
+            auras = {},
+            auracnt = 0
+        } end
+        if not self.db[self.current][unitGUID].spells then
+            self.db[self.current][unitGUID].spells = {}
+        end
+        if not self.db[self.current][unitGUID].spells[spellId] then self.db[self.current][unitGUID].spells[spellId] = {
+            cnt = 0,
+            sum = 0
+        } end
+
+        self.db[self.current][unitGUID].sum = self.db[self.current][unitGUID].sum + aAmount
+        self.db[self.current][unitGUID].cnt = self.db[self.current][unitGUID].cnt + 1
+        self.db[self.current][unitGUID].spells[spellId].sum = self.db[self.current][unitGUID].spells[spellId].sum + aAmount
+        self.db[self.current][unitGUID].spells[spellId].cnt = self.db[self.current][unitGUID].spells[spellId].cnt + 1
+	end
+end
+
+function SM:AuraApply(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, auraType, auraAmount)
+    local unitGUID = dstGUID
+    if (SM.Auras[spellId] or (SM.AurasNoTank[spellId] and UnitGroupRolesAssigned(dstName) ~= "TANK")) and UnitIsPlayer(dstName)  then
+        if not self.db[self.current] then self.db[self.current] = {} end
+        if not self.db[self.current][unitGUID] then self.db[self.current][unitGUID] = {
+            sum = 0,
+            cnt = 0,
+            spells = {},
+            auras = {},
+            auracnt = 0
+        } end
+        if not self.db[self.current][unitGUID].auras[spellId] then self.db[self.current][unitGUID].auras[spellId] = {
+            cnt = 0
+        } end
+        self.db[self.current][unitGUID].auracnt = self.db[self.current][unitGUID].auracnt + 1
+        self.db[self.current][unitGUID].auras[spellId].cnt = self.db[self.current][unitGUID].auras[spellId].cnt + 1
+	end
+end
+
+function SM:SwingDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, aAmount)
 end
 
 function SM:RecordHit(unitGUID, targetGUID)
@@ -357,7 +503,7 @@ function SM:OnDetailsEvent(event, combat)
         SM.current = combat:GetCombatNumber()
         SM:Debug("COMBAT_PLAYER_LEAVE: %s", SM.current)
 
-        if not SM.current or not SM.db[EO.current] then return end
+        if not SM.current or not SM.db[SM.current] then return end
 
     elseif event == 'DETAILS_DATA_RESET' then
         SM:Debug("DETAILS_DATA_RESET")
@@ -381,7 +527,7 @@ function SM:LoadHooks()
     self.EventListener.OnDetailsEvent = self.OnDetailsEvent
 
     Details:InstallCustomObject(self.CustomDisplay)
-    Details:InstallCustomObject(self.CustomDisplayAura)
+    Details:InstallCustomObject(self.CustomDisplayAuras)
     self:CleanDiscardCombat()
 end
 
