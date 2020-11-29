@@ -20,7 +20,7 @@ local tContains = tContains
 
 local Details = _G.Details
 
--- GLOBALS: SlackMeter
+-- GLOBALS: SlackMeterLog
 
 SM.debug = true
 SM.CustomDisplay = {
@@ -32,7 +32,7 @@ SM.CustomDisplay = {
     target = false,
     author = "Sevenn",
     desc = L["Show how much avoidable damage was taken."],
-    script_version = 1,
+    script_version = 2,
     script = [[
         local Combat, CustomContainer, Instance = ...
         local total, top, amount = 0, 0, 0
@@ -42,24 +42,20 @@ SM.CustomDisplay = {
             local Container = Combat:GetContainer(DETAILS_ATTRIBUTE_MISC)
             for _, Actor in Container:ListActors() do
                 if Actor:IsGroupPlayer() then
-                    -- we only record the players in party
-                    local target, hit = _G.Details_SlackMeter:GetRecord(CombatNumber, Actor:guid())
-                    if target > 0 or hit > 0 then
-                        CustomContainer:AddValue(Actor, hit)
+                    local damage, cnt = _G.Details_SlackMeter:GetRecord(CombatNumber, Actor:guid())
+                    if damage > 0 or cnt > 0 then
+                        CustomContainer:AddValue(Actor, damage)
                     end
                 end
             end
-
             total, top = CustomContainer:GetTotalAndHighestValue()
             amount = CustomContainer:GetNumActors()
         end
-
         return total, top, amount
     ]],
     tooltip = [[
         local Actor, Combat, Instance = ...
         local GameCooltip = GameCooltip
-
         if _G.Details_SlackMeter then
             local realCombat
             for i = -1, 25 do
@@ -69,23 +65,17 @@ SM.CustomDisplay = {
                     break
                 end
             end
-
             if not realCombat then return end
-
             local sortedList = {}
-
-            _, _, spells = _G.Details_Elitism:GetRecord(Combat:GetCombatNumber(), realCombat[1]:GetActor(Actor.nome):guid())
+            _, _, spells = _G.Details_SlackMeter:GetRecord(Combat:GetCombatNumber(), realCombat[1]:GetActor(Actor.nome):guid())
             for spellID, spelldata in pairs(spells) do
                 tinsert(sortedList, {spellID, spelldata.sum})
             end
-
             sort(sortedList, Details.Sort2)
-
             local format_func = Details:GetCurrentToKFunction()
             for _, tbl in ipairs(sortedList) do
                 local spellID, amount = unpack(tbl)
                 local spellName, _, spellIcon = Details.GetSpellInfo(spellID)
-
                 GameCooltip:AddLine(spellName, format_func(_, amount))
                 Details:AddTooltipBackgroundStatusbar()
                 GameCooltip:AddIcon(spellIcon, 1, 1, _detalhes.tooltip.line_height, _detalhes.tooltip.line_height)
@@ -94,7 +84,7 @@ SM.CustomDisplay = {
     ]],
     total_script = [[
         local value, top, total, Combat, Instance, Actor = ...
-
+        local format_func = Details:GetCurrentToKFunction()
         if _G.Details_SlackMeter then
             local damage, cnt = _G.Details_SlackMeter:GetRecord(Combat:GetCombatNumber(), Actor.my_actor.serial)
             return "" .. format_func(_, damage) .. " (" .. cnt .. ")"
@@ -103,7 +93,7 @@ SM.CustomDisplay = {
     ]],
 }
 
-DE.CustomDisplayAuras = {
+SM.CustomDisplayAuras = {
     name = L["Avoidable Abilities Taken"],
     icon = 132311,
     source = false,
@@ -112,17 +102,17 @@ DE.CustomDisplayAuras = {
     target = false,
     author = "Sevenn",
     desc = L["Show how many avoidable abilities hit players."],
-    script_version = 1,
+    script_version = 2,
     script = [[
         local Combat, CustomContainer, Instance = ...
         local total, top, amount = 0, 0, 0
         if _G.Details_SlackMeter then
-            local Container = Combat:GetActorList(DETAILS_ATTRIBUTE_MISC)
-            for _, player in ipairs(Container) do
+            local CombatNumber = Combat:GetCombatNumber()
+            local Container = Combat:GetContainer(DETAILS_ATTRIBUTE_MISC)
+            for _, Actor in Container:ListActors() do
                 if player:IsGroupPlayer() then
                     -- we only record the players in party
-                    local cnt, _ = _G.Details_SlackMeter:GetAuraRecord(Combat:GetCombatNumber(), player:guid())
-                    -- _G.Details_SlackMeter:Debug("guid %s target %s hit %s", player:guid() or 0, target or 0,hit or 0)
+                    local cnt, _ = _G.Details_SlackMeter:GetAuraRecord(CombatNumber, Actor:guid())
                     if cnt > 0 then
                         CustomContainer:AddValue(player, cnt)
                     end
@@ -194,7 +184,7 @@ SM.Spells = {
     [326263] = true,      --- Perte d'anima (boss 3) 
 }
 
-SM.SpellsNoTank ={
+SM.SpellsNoTank = {
 
 }
 
@@ -237,12 +227,12 @@ end
 
 function SM:Debug(...)
     if self.debug then
-        _G.DEFAULT_CHAT_FRAME:AddMessage("|cFF70B8FFDetails Explosive Orbs:|r " .. format(...))
+        _G.DEFAULT_CHAT_FRAME:AddMessage("|cFF70B8FFDetails SlackMeter:|r " .. format(...))
     end
 end
 
 function SM:COMBAT_LOG_EVENT_UNFILTERED()
-    local _, subEvent, _, sourceGUID, sourceName, sourceFlag, _, destGUID = CombatLogGetCurrentEventInfo()
+    local timestamp, eventType, hideCaster, srcGUID, srcName, srcFlags, srcFlags2, dstGUID, dstName, dstFlags, dstFlags2 = CombatLogGetCurrentEventInfo();
 
     local eventPrefix, eventSuffix = eventType:match("^(.-)_?([^_]*)$");
 
@@ -270,7 +260,7 @@ end
 function SM:RecordTarget(unitGUID, targetGUID)
     if not self.current then return end
 
-    -- self:Debug("%s target %s in combat %s", unitGUID, targetGUID, self.current)
+    self:Debug("%s target %s in combat %s", unitGUID, targetGUID, self.current)
 
     if not self.db[self.current] then self.db[self.current] = {} end
     if not self.db[self.current][unitGUID] then self.db[self.current][unitGUID] = {} end
@@ -307,6 +297,8 @@ function SM:SpellDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUI
             sum = 0
         } end
 
+        self:Debug("%s get hit by spell %s", unitGUID, self.current)
+
         self.db[self.current][unitGUID].sum = self.db[self.current][unitGUID].sum + aAmount
         self.db[self.current][unitGUID].cnt = self.db[self.current][unitGUID].cnt + 1
         self.db[self.current][unitGUID].spells[spellId].sum = self.db[self.current][unitGUID].spells[spellId].sum + aAmount
@@ -328,6 +320,9 @@ function SM:AuraApply(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID,
         if not self.db[self.current][unitGUID].auras[spellId] then self.db[self.current][unitGUID].auras[spellId] = {
             cnt = 0
         } end
+
+        self:Debug("%s get hit by aura %s", unitGUID, self.current)
+
         self.db[self.current][unitGUID].auracnt = self.db[self.current][unitGUID].auracnt + 1
         self.db[self.current][unitGUID].auras[spellId].cnt = self.db[self.current][unitGUID].auras[spellId].cnt + 1
 	end
@@ -339,7 +334,7 @@ end
 function SM:RecordHit(unitGUID, targetGUID)
     if not self.current then return end
 
-    -- self:Debug("%s hit %s in combat %s", unitGUID, targetGUID, self.current)
+    self:Debug("%s hit %s in combat %s", unitGUID, targetGUID, self.current)
 
     if not self.db[self.current] then self.db[self.current] = {} end
     if not self.db[self.current][unitGUID] then self.db[self.current][unitGUID] = {} end
