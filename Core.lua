@@ -198,10 +198,25 @@ SM.Spells = {
     [324090] = true,      --- Onde explosive déplacée (boss)
     [334913] = true,      --- Maitre de la mort (boss)
     [325691] = true,      --- Effondrement cosmique (boss)
+
+    --- Halls of atonement
+    [325523] = true,       --- Poussée mortelle
+    [325799] = true,       --- Tir rapide
+    [346866] = true,       --- Souffle de pierre
+    [326440] = true,       --- Secousse de vice
+    [322945] = true,       --- Projection de débris (boss)
+    [322936] = true,       --- Heurt destructeur (boss)
+    [324044] = true,       --- Lumière viciée réfractée (boss)
+    [323001] = true,       --- Éclats de verre (boss)
+    [326997] = true,       --- Puissant balayage
+    [319592] = true,       --- Bond fracasse-pierre (boss)
+    [319703] = true,       --- Torrent de sang (boss)
+    [326891] = true,       --- Angoisse
+    [323236] = true,       --- Souffrance déchaînée (boss)
+    
 }
 
 SM.SpellsNoTank = {
-
 }
 
 SM.Auras = {
