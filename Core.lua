@@ -1,8 +1,8 @@
 local addon, Engine = ...
-local EO = LibStub('AceAddon-3.0'):NewAddon(addon, 'AceEvent-3.0', 'AceHook-3.0')
+local SM = LibStub('AceAddon-3.0'):NewAddon(addon, 'AceEvent-3.0', 'AceHook-3.0')
 local L = Engine.L
 
-Engine.Core = EO
+Engine.Core = SM
 _G[addon] = Engine
 
 -- Lua functions
@@ -18,35 +18,32 @@ local UnitGUID = UnitGUID
 
 local tContains = tContains
 
-local COMBATLOG_OBJECT_TYPE_PET = COMBATLOG_OBJECT_TYPE_PET
-
 local Details = _G.Details
 
--- GLOBALS: ExplosiveOrbsLog
+-- GLOBALS: SlackMeter
 
-EO.debug = false
-EO.orbID = '120651' -- Explosive
+SM.debug = true
 EO.CustomDisplay = {
-    name = L["Explosive Orbs"],
-    icon = 2175503,
+    name = L["EAvoidable Damage Taken"],
+    icon = 3565723,
     source = false,
     attribute = false,
     spellid = false,
     target = false,
-    author = "Rhythm",
-    desc = L["Show how many explosive orbs players target and hit."],
-    script_version = 4,
+    author = "Sevenn",
+    desc = L["Show how much avoidable damage was taken."],
+    script_version = 1,
     script = [[
         local Combat, CustomContainer, Instance = ...
         local total, top, amount = 0, 0, 0
 
-        if _G.Details_ExplosiveOrbs then
+        if _G.Details_SlackMeter then
             local CombatNumber = Combat:GetCombatNumber()
             local Container = Combat:GetContainer(DETAILS_ATTRIBUTE_MISC)
             for _, Actor in Container:ListActors() do
                 if Actor:IsGroupPlayer() then
                     -- we only record the players in party
-                    local target, hit = _G.Details_ExplosiveOrbs:GetRecord(CombatNumber, Actor:guid())
+                    local target, hit = _G.Details_SlackMeter:GetRecord(CombatNumber, Actor:guid())
                     if target > 0 or hit > 0 then
                         CustomContainer:AddValue(Actor, hit)
                     end
@@ -63,42 +60,31 @@ EO.CustomDisplay = {
         local Actor, Combat, Instance = ...
         local GameCooltip = GameCooltip
 
-        if _G.Details_ExplosiveOrbs then
-            local actorName = Actor:name()
-            local Actor = Combat:GetContainer(DETAILS_ATTRIBUTE_DAMAGE):GetActor(actorName)
-            if not Actor then return end
-
-            local sortedList = {}
-            local orbName = _G.Details_ExplosiveOrbs:RequireOrbName()
-            local Container = Combat:GetContainer(DETAILS_ATTRIBUTE_DAMAGE)
-
-            for spellID, spellTable in pairs(Actor:GetSpellList()) do
-                local amount = spellTable.targets[orbName]
-                if amount then
-                    tinsert(sortedList, {spellID, amount})
+        if _G.Details_SlackMeter then
+            local realCombat
+            for i = -1, 25 do
+                local current = Details:GetCombat(i)
+                if current and current:GetCombatNumber() == Combat.combat_counter then
+                    realCombat = current
+                    break
                 end
             end
 
-            -- handle pet
-            for _, petName in ipairs(Actor.pets) do
-                local petActor = Container:GetActor(petName)
-                for spellID, spellTable in pairs(petActor:GetSpellList()) do
-                    local amount = spellTable.targets[orbName]
-                    if amount then
-                        tinsert(sortedList, {spellID, amount, petName})
-                    end
-                end
+            if not realCombat then return end
+
+            local sortedList = {}
+
+            _, _, spells = _G.Details_Elitism:GetRecord(Combat:GetCombatNumber(), realCombat[1]:GetActor(Actor.nome):guid())
+            for spellID, spelldata in pairs(spells) do
+                tinsert(sortedList, {spellID, spelldata.sum})
             end
 
             sort(sortedList, Details.Sort2)
 
             local format_func = Details:GetCurrentToKFunction()
             for _, tbl in ipairs(sortedList) do
-                local spellID, amount, petName = unpack(tbl)
+                local spellID, amount = unpack(tbl)
                 local spellName, _, spellIcon = Details.GetSpellInfo(spellID)
-                if petName then
-                    spellName = spellName .. ' (' .. petName .. ')'
-                end
 
                 GameCooltip:AddLine(spellName, format_func(_, amount))
                 Details:AddTooltipBackgroundStatusbar()
@@ -109,8 +95,9 @@ EO.CustomDisplay = {
     total_script = [[
         local value, top, total, Combat, Instance, Actor = ...
 
-        if _G.Details_ExplosiveOrbs then
-            return _G.Details_ExplosiveOrbs:GetDisplayText(Combat:GetCombatNumber(), Actor.my_actor:guid())
+        if _G.Details_SlackMeter then
+            local damage, cnt = _G.Details_SlackMeter:GetRecord(Combat:GetCombatNumber(), Actor.my_actor.serial)
+            return "" .. format_func(_, damage) .. " (" .. cnt .. ")"
         end
         return ""
     ]],
@@ -119,15 +106,22 @@ EO.CustomDisplay = {
 -- Public APIs
 
 function Engine:GetRecord(combatID, playerGUID)
-    if EO.db[combatID] and EO.db[combatID][playerGUID] then
-        return EO.db[combatID][playerGUID].target or 0, EO.db[combatID][playerGUID].hit or 0
+    if SM.db[combatID] and SM.db[combatID][playerGUID] then
+        return SM.db[combatID][playerGUID].target or 0, SM.db[combatID][playerGUID].hit or 0
     end
     return 0, 0
 end
 
+function Engine:GetAuraRecord(combatID, playerGUID)
+    if SM.db[combatID] and SM.db[combatID][playerGUID] then
+        return SM.db[combatID][playerGUID].auracnt or 0, SM.db[combatID][playerGUID].auras
+    end
+    return 0, {}
+end
+
 function Engine:GetDisplayText(combatID, playerGUID)
-    if EO.db[combatID] and EO.db[combatID][playerGUID] then
-        return L["Target: "] .. (EO.db[combatID][playerGUID].target or 0) .. " " .. L["Hit: "] .. (EO.db[combatID][playerGUID].hit or 0)
+    if SM.db[combatID] and SM.db[combatID][playerGUID] then
+        return L["Target: "] .. (SM.db[combatID][playerGUID].target or 0) .. " " .. L["Hit: "] .. (SM.db[combatID][playerGUID].hit or 0)
     end
     return L["Target: "] .. "0 " .. L["Hit: "] .. "0"
 end
@@ -136,22 +130,15 @@ function Engine:FormatDisplayText(target, hit)
     return L["Target: "] .. (target or 0) .. " " .. L["Hit: "] .. (hit or 0)
 end
 
-function Engine:RequireOrbName()
-    if not EO.orbName then
-        EO.orbName = Details:GetSourceFromNpcId(tonumber(EO.orbID))
-    end
-    return EO.orbName
-end
-
 -- Private Functions
 
-function EO:Debug(...)
+function SM:Debug(...)
     if self.debug then
         _G.DEFAULT_CHAT_FRAME:AddMessage("|cFF70B8FFDetails Explosive Orbs:|r " .. format(...))
     end
 end
 
-function EO:COMBAT_LOG_EVENT_UNFILTERED()
+function SM:COMBAT_LOG_EVENT_UNFILTERED()
     local _, subEvent, _, sourceGUID, sourceName, sourceFlag, _, destGUID = CombatLogGetCurrentEventInfo()
     if (
         subEvent == 'SPELL_DAMAGE' or subEvent == 'RANGE_DAMAGE' or subEvent == 'SWING_DAMAGE' or
@@ -182,7 +169,7 @@ function EO:COMBAT_LOG_EVENT_UNFILTERED()
     end
 end
 
-function EO:RecordTarget(unitGUID, targetGUID)
+function SM:RecordTarget(unitGUID, targetGUID)
     if not self.current then return end
 
     -- self:Debug("%s target %s in combat %s", unitGUID, targetGUID, self.current)
@@ -203,7 +190,7 @@ function EO:RecordTarget(unitGUID, targetGUID)
     end
 end
 
-function EO:RecordHit(unitGUID, targetGUID)
+function SM:RecordHit(unitGUID, targetGUID)
     if not self.current then return end
 
     -- self:Debug("%s hit %s in combat %s", unitGUID, targetGUID, self.current)
@@ -228,11 +215,14 @@ function SM:InitDataCollection()
     self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
 end
 
-function EO:MergeCombat(to, from)
+function SM:MergeCombat(to, from)
     if self.db[from] then
         self:Debug("Merging combat %s into %s", from, to)
         if not self.db[to] then self.db[to] = {} end
         for playerGUID, tbl in pairs(self.db[from]) do
+
+            --- todo : work here
+
             if type(tbl) == 'table' then
                 if not self.db[to][playerGUID] then
                     self.db[to][playerGUID] = {}
@@ -244,7 +234,7 @@ function EO:MergeCombat(to, from)
     end
 end
 
-function EO:MergeSegmentsOnEnd()
+function SM:MergeSegmentsOnEnd()
     self:Debug("on Details MergeSegmentsOnEnd")
 
     -- at the end of a Mythic+ Dungeon
@@ -272,7 +262,7 @@ function EO:MergeSegmentsOnEnd()
     self:CleanDiscardCombat()
 end
 
-function EO:MergeTrashCleanup()
+function SM:MergeTrashCleanup()
     self:Debug("on Details MergeTrashCleanup")
 
     -- after boss fight
@@ -312,7 +302,7 @@ function EO:MergeTrashCleanup()
     self:CleanDiscardCombat()
 end
 
-function EO:MergeRemainingTrashAfterAllBossesDone()
+function SM:MergeRemainingTrashAfterAllBossesDone()
     self:Debug("on Details MergeRemainingTrashAfterAllBossesDone")
 
     -- before the end of a Mythic+ Dungeon, and finish all trash after final boss fight
@@ -331,7 +321,7 @@ function EO:MergeRemainingTrashAfterAllBossesDone()
     self:CleanDiscardCombat()
 end
 
-function EO:ResetOverall()
+function SM:ResetOverall()
     self:Debug("on Details Reset Overall (Details.historico.resetar_overall)")
 
     if self.overall and self.db[self.overall] then
@@ -340,7 +330,7 @@ function EO:ResetOverall()
     self.overall = Details:GetCombat(-1):GetCombatNumber()
 end
 
-function EO:CleanDiscardCombat()
+function SM:CleanDiscardCombat()
     local remain = {}
     remain[self.overall] = true
 
@@ -358,32 +348,25 @@ function EO:CleanDiscardCombat()
     end
 end
 
-function EO:OnDetailsEvent(event, combat)
-    -- self here is not EO, this function is called from EO.EventListener
+function SM:OnDetailsEvent(event, combat)
+    -- self here is not SM, this function is called from SM.EventListener
     if event == 'COMBAT_PLAYER_ENTER' then
-        EO.current = combat:GetCombatNumber()
-        EO:Debug("COMBAT_PLAYER_ENTER: %s", EO.current)
+        SM.current = combat:GetCombatNumber()
+        SM:Debug("COMBAT_PLAYER_ENTER: %s", SM.current)
     elseif event == 'COMBAT_PLAYER_LEAVE' then
-        EO.current = combat:GetCombatNumber()
-        EO:Debug("COMBAT_PLAYER_LEAVE: %s", EO.current)
+        SM.current = combat:GetCombatNumber()
+        SM:Debug("COMBAT_PLAYER_LEAVE: %s", SM.current)
 
-        if not EO.current or not EO.db[EO.current] then return end
-        for _, list in pairs(EO.db[EO.current]) do
-            for key in pairs(list) do
-                if key ~= 'target' and key ~= 'hit' then
-                    list[key] = nil
-                end
-            end
-        end
-        EO.db[EO.current].runID = select(2, combat:IsMythicDungeon())
+        if not SM.current or not SM.db[EO.current] then return end
+
     elseif event == 'DETAILS_DATA_RESET' then
-        EO:Debug("DETAILS_DATA_RESET")
+        SM:Debug("DETAILS_DATA_RESET")
         self.overall = Details:GetCombat(-1):GetCombatNumber()
-        EO:CleanDiscardCombat()
+        SM:CleanDiscardCombat()
     end
 end
 
-function EO:LoadHooks()
+function SM:LoadHooks()
     self:SecureHook(_G.DetailsMythicPlusFrame, 'MergeSegmentsOnEnd')
     self:SecureHook(_G.DetailsMythicPlusFrame, 'MergeTrashCleanup')
     self:SecureHook(_G.DetailsMythicPlusFrame, 'MergeRemainingTrashAfterAllBossesDone')
@@ -398,6 +381,7 @@ function EO:LoadHooks()
     self.EventListener.OnDetailsEvent = self.OnDetailsEvent
 
     Details:InstallCustomObject(self.CustomDisplay)
+    Details:InstallCustomObject(self.CustomDisplayAura)
     self:CleanDiscardCombat()
 end
 
