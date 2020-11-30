@@ -280,6 +280,21 @@ SM.Spells = {
     [324141] = true,       --- Sombre trait (boss) 
     [324444] = true,       --- Munition empyréenne (Boss)
     [334625] = true,       --- Détonation abyssale (Boss)
+
+    --- The Necrotic Wake
+    [320596] = true,       --- Relent ecoeurant (boss)
+    [320637] = true,       --- Gaz fétide (boss)
+    [345625] = true,       --- Explosion de mort
+    [324293] = true,       --- Cri rauque
+    [324323] = true,       --- Enchainement atroce
+    [324381] = true,       --- Faux glaciale
+    [324391] = true,       --- Pointes glaciales
+    [333489] = true,       --- Souffle nécrotique (boss)
+    [333479] = true,       --- Crachat septique
+    [333485] = true,       --- Nuage infectieux
+    [320366] = true,       --- Ichor d’embaumement (boss)
+    [327952] = true,       --- Crochet à viande (boss)
+    [320784] = true,       --- Tempête de comètes (boss)
 }
 
 SM.SpellsNoTank = {
