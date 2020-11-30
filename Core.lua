@@ -205,10 +205,8 @@ SM.Spells = {
     [346866] = true,       --- Souffle de pierre
     [326440] = true,       --- Secousse de vice
     [322945] = true,       --- Projection de débris (boss)
-    [322936] = true,       --- Heurt destructeur (boss)
     [324044] = true,       --- Lumière viciée réfractée (boss)
     [323001] = true,       --- Éclats de verre (boss)
-    [326997] = true,       --- Puissant balayage
     [319592] = true,       --- Bond fracasse-pierre (boss)
     [319703] = true,       --- Torrent de sang (boss)
     [326891] = true,       --- Angoisse
@@ -216,7 +214,7 @@ SM.Spells = {
 
     --- Theater of pain
     [320180] = true,       --- Spores nocives (boss)
-    [323608] = true,       --- Sombre dévastation (boss)
+    [323681] = true,       --- Sombre dévastation (boss)
     [339751] = true,       --- Charge fantôme (boss)
     [339550] = true,       --- Écho de bataille (boss)
     [323831] = true,       --- Emprise mortelle (boss)
@@ -266,7 +264,6 @@ SM.Spells = {
     [322212] = true,       --- Méfiance croissante
     [323551] = true,       --- Résidu (boss)
     [328494] = true,       --- Anima touché par le vice (boss)
-    [328673] = true,       --- Tourment sans fin
     [323821] = true,       --- Flou perçant (boss)
 
     --- Spires of ascension
@@ -298,6 +295,8 @@ SM.Spells = {
 }
 
 SM.SpellsNoTank = {
+    --- Sanguine Depths
+    [326997] = true,       --- Puissant balayage
 }
 
 SM.Auras = {
