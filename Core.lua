@@ -213,7 +213,73 @@ SM.Spells = {
     [319703] = true,       --- Torrent de sang (boss)
     [326891] = true,       --- Angoisse
     [323236] = true,       --- Souffrance déchaînée (boss)
-    
+
+    --- Theater of pain
+    [320180] = true,       --- Spores nocives (boss)
+    [323608] = true,       --- Sombre dévastation (boss)
+    [339751] = true,       --- Charge fantôme (boss)
+    [339550] = true,       --- Écho de bataille (boss)
+    [323831] = true,       --- Emprise mortelle (boss)
+    [317605] = true,       --- Tourbillon
+    [337037] = true,       --- Lame tourbillonnante
+    [342125] = true,       --- Bond Brutal
+    [332708] = true,       --- Onde de choc
+    [317231] = true,       --- Heurt écrasant (boss)
+    [320729] = true,       --- Gigantesque fendoir (boss)
+    [339415] = true,       --- Choc assourdissant (boss)
+    [321041] = true,       --- Explosion abjecte
+    [318406] = true,       --- Choc attendrisseur (boss)
+    [330614] = true,       --- Éruption infâme (boss)
+    [323406] = true,       --- Incision déchiquetée (boss)
+    [333297] = true,       --- Vents de mort
+    [331243] = true,       --- Pointes d'os
+    [331224] = true,       --- Tempête d'os
+
+    --- Plaguefall
+    [330404] = true,       --- Frappe des ailes
+    [328660] = true,       --- Gelée jaillissantes
+    [330513] = true,       --- Champignon funeste
+    [327233] = true,       --- Vomissement de peste
+    [326242] = true,       --- Vague de gelée (boss)
+    [328986] = true,       --- Détonation violente
+    [318949] = true,       --- Renvoi putride
+    [320519] = true,       --- Pointes déchirante
+    [328501] = true,       --- Bombe de peste
+    [319070] = true,       --- Bouillie corrosive
+    [328662] = true,       --- Couche poisseuse
+    [320576] = true,       --- Limon anéantissant
+    [333808] = true,       --- Gelée envahissante (boss)
+    [330026] = true,       --- Impulsion visqueuse (boss)
+    [329217] = true,       --- Impulsion visqueuse (boss)
+    [328395] = true,       --- Perce-venin
+    [339195] = true,       --- Éruption de peste
+
+    --- Sanguine Depths
+    [334563] = true,       --- Piège volatil
+    [320991] = true,       --- Elan retentissant
+    [334921] = true,       --- Impact ombreux
+    [321401] = true,       --- Explosion gloutonne
+    [322429] = true,       --- Taillade tranchante
+    [322418] = true,       --- Crevasse rocheuse
+    [334615] = true,       --- Entaille circulaire
+    [334377] = true,       --- Vélin explosif
+    [322212] = true,       --- Méfiance croissante
+    [323551] = true,       --- Résidu (boss)
+    [328494] = true,       --- Anima touché par le vice (boss)
+    [328673] = true,       --- Tourment sans fin
+    [323821] = true,       --- Flou perçant (boss)
+
+    --- Spires of ascension
+    [317943] = true,       --- Balayage
+    [327413] = true,       --- Poing rebelle
+    [331251] = true,       --- Connexion profonde (boss)
+    [324370] = true,       --- Barrage atténué (boss)
+    [321009] = true,       --- Lance chargée (boss)
+    [323786] = true,       --- Taillade rapide
+    [323645] = true,       --- Bave touchée par l'antre
+    [324141] = true,       --- Sombre trait (boss) 
+    [324444] = true,       --- Munition empyréenne (Boss)
+    [334625] = true,       --- Détonation abyssale (Boss)
 }
 
 SM.SpellsNoTank = {
@@ -225,6 +291,12 @@ SM.Auras = {
 
     --- De Other Side
     [326171] = true,      --- Destruction de la réalité (boss)
+
+    --- Plaguefall
+    [317898] = true,      --- Grésil aveuglant
+
+    --- Spires of ascension
+    [324205] = true,      --- Eclair aveuglant
 }
 
 SM.AurasNoTank = {
@@ -340,6 +412,28 @@ function SM:SpellDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUI
         self.db[self.current][unitGUID].cnt = self.db[self.current][unitGUID].cnt + 1
         self.db[self.current][unitGUID].spells[spellId].sum = self.db[self.current][unitGUID].spells[spellId].sum + aAmount
         self.db[self.current][unitGUID].spells[spellId].cnt = self.db[self.current][unitGUID].spells[spellId].cnt + 1
+
+        -- update overall
+        if not self.db[self.overall] then self.db[self.overall] = {} end
+        if not self.db[self.overall][unitGUID] then self.db[self.overall][unitGUID] = {
+            sum = 0,
+            cnt = 0,
+            spells = {},
+            auras = {},
+            auracnt = 0
+        } end
+        if not self.db[self.overall][unitGUID].spells then
+            self.db[self.overall][unitGUID].spells = {}
+        end
+        if not self.db[self.overall][unitGUID].spells[spellId] then self.db[self.overall][unitGUID].spells[spellId] = {
+            cnt = 0,
+            sum = 0
+        } end
+
+        self.db[self.overall][unitGUID].sum = self.db[self.overall][unitGUID].sum + aAmount
+        self.db[self.overall][unitGUID].cnt = self.db[self.overall][unitGUID].cnt + 1
+        self.db[self.overall][unitGUID].spells[spellId].sum = self.db[self.overall][unitGUID].spells[spellId].sum + aAmount
+        self.db[self.overall][unitGUID].spells[spellId].cnt = self.db[self.overall][unitGUID].spells[spellId].cnt + 1
 	end
 end
 
@@ -362,6 +456,22 @@ function SM:AuraApply(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID,
 
         self.db[self.current][unitGUID].auracnt = self.db[self.current][unitGUID].auracnt + 1
         self.db[self.current][unitGUID].auras[spellId].cnt = self.db[self.current][unitGUID].auras[spellId].cnt + 1
+
+        -- update overall
+        if not self.db[self.overall] then self.db[self.overall] = {} end
+        if not self.db[self.overall][unitGUID] then self.db[self.overall][unitGUID] = {
+            sum = 0,
+            cnt = 0,
+            spells = {},
+            auras = {},
+            auracnt = 0
+        } end
+        if not self.db[self.overall][unitGUID].auras[spellId] then self.db[self.overall][unitGUID].auras[spellId] = {
+            cnt = 0
+        } end
+        
+        self.db[self.overall][unitGUID].auracnt = self.db[self.overall][unitGUID].auracnt + 1
+        self.db[self.overall][unitGUID].auras[spellId].cnt = self.db[self.overall][unitGUID].auras[spellId].cnt + 1
 	end
 end
 
