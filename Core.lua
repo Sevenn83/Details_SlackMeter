@@ -288,15 +288,20 @@ SM.Spells = {
     [324391] = true,       --- Pointes glaciales
     [333489] = true,       --- Souffle nécrotique (boss)
     [333479] = true,       --- Crachat septique
-    [333485] = true,       --- Nuage infectieux
     [320366] = true,       --- Ichor d’embaumement (boss)
     [327952] = true,       --- Crochet à viande (boss)
     [320784] = true,       --- Tempête de comètes (boss)
 }
 
 SM.SpellsNoTank = {
+    --- Mists of tirna Scithe
+    [340300] = true,       --- Langue fouetteuse
+
     --- Sanguine Depths
     [326997] = true,       --- Puissant balayage
+
+    --- The Necrotic Wake
+    [333485] = true,       --- Nuage infectieux
 }
 
 SM.Auras = {
