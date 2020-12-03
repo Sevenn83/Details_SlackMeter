@@ -192,6 +192,7 @@ SM.Spells = {
     [331398] = true,      --- Condensateur instable
     [332157] = true,      --- Accélération
     [331008] = true,      --- Engluement
+    [323569] = true,      --- Essence renversée
     [324010] = true,      --- Eruption (boss)
     [323136] = true,      --- Tempête stellaire d'anima
     [345498] = true,      --- Tempête stellaire d'anima
@@ -208,7 +209,6 @@ SM.Spells = {
     [322945] = true,       --- Projection de débris (boss)
     [324044] = true,       --- Lumière viciée réfractée (boss)
     [323001] = true,       --- Éclats de verre (boss)
-    [319592] = true,       --- Bond fracasse-pierre (boss)
     [319703] = true,       --- Torrent de sang (boss)
     [326891] = true,       --- Angoisse
     [323236] = true,       --- Souffrance déchaînée (boss)
@@ -295,6 +295,12 @@ SM.Spells = {
     [320366] = true,       --- Ichor d’embaumement (boss)
     [327952] = true,       --- Crochet à viande (boss)
     [320784] = true,       --- Tempête de comètes (boss)
+
+    --- Château Nathria Salut du roi-soleil
+    [333002] = true,       --- Marque grossière (Dot à cut)
+    [329518] = true,       --- Geyser incendiaire
+    [341254] = true,       --- Plumage fumant
+    [328579] = true,       --- Vestiges fumants
 }
 
 SM.SpellsNoTank = {
@@ -306,6 +312,10 @@ SM.SpellsNoTank = {
 
     --- The Necrotic Wake
     [333485] = true,       --- Nuage infectieux
+    
+    --- Château Nathria Salut du roi-soleil
+    [326455] = true,       --- Frappe flamboyante
+    [326456] = true,       --- Vestiges incandescents
 }
 
 SM.Auras = {
