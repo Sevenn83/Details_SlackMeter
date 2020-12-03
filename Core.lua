@@ -296,7 +296,28 @@ SM.Spells = {
     [327952] = true,       --- Crochet à viande (boss)
     [320784] = true,       --- Tempête de comètes (boss)
 
-    --- Château Nathria Salut du roi-soleil
+    --- Château Nathria 
+       --- Hurlaile
+    [342863] = true,       --- Hurlement résonnant
+    [342923] = true,       --- Descente
+    [330711] = true,       --- Cri assourdissant
+
+       --- Altimor le Veneur
+    [334404] = true,       --- Tir à dispersion
+
+       --- Artificier Xy'mox
+    [329458] = true,       --- Faille explosive
+    [329770] = true,       --- Racine d’extinction
+    [328880] = true,       --- Tranchant d’annihilation
+
+       --- Dame Inerva Sombreveine
+    [329618] = true,       --- Volatilité déchaînée
+    [331527] = true,       --- Indemnisation
+    [326538] = true,       --- Toile d’anima
+    [331550] = true,       --- Blâme
+    [325596] = true,       --- Fragments d’ombre
+
+       --- Salut du roi-soleil
     [333002] = true,       --- Marque grossière (Dot à cut)
     [329518] = true,       --- Geyser incendiaire
     [341254] = true,       --- Plumage fumant
@@ -313,7 +334,11 @@ SM.SpellsNoTank = {
     --- The Necrotic Wake
     [333485] = true,       --- Nuage infectieux
     
-    --- Château Nathria Salut du roi-soleil
+    --- Château Nathria
+       --- Hurlaile
+    [343005] = true,       --- Balayage aveugle
+
+       --- Salut du roi-soleil
     [326455] = true,       --- Frappe flamboyante
     [326456] = true,       --- Vestiges incandescents
 }
