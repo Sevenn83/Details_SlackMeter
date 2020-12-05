@@ -272,6 +272,7 @@ SM.Spells = {
     --- Spires of ascension
     [317943] = true,       --- Balayage
     [327413] = true,       --- Poing rebelle
+    [336444] = true,       --- Crescendo
     [331251] = true,       --- Connexion profonde (boss)
     [324370] = true,       --- Barrage atténué (boss)
     [321009] = true,       --- Lance chargée (boss)
