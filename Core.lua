@@ -270,7 +270,6 @@ SM.Spells = {
     [323821] = true,       --- Flou perçant (boss)
 
     --- Spires of ascension
-    [317943] = true,       --- Balayage
     [327413] = true,       --- Poing rebelle
     [336444] = true,       --- Crescendo
     [331251] = true,       --- Connexion profonde (boss)
@@ -326,6 +325,9 @@ SM.Spells = {
 }
 
 SM.SpellsNoTank = {
+    --- Spires of ascension
+    [317943] = true,       --- Balayage
+
     --- Mists of tirna Scithe
     [340300] = true,       --- Langue fouetteuse
 
