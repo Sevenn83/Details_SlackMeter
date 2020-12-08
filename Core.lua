@@ -265,7 +265,7 @@ SM.Spells = {
     [322429] = true,       --- Taillade tranchante
     [322418] = true,       --- Crevasse rocheuse
     [334615] = true,       --- Entaille circulaire
-    [334377] = true,       --- Vélin explosif
+    [334378] = true,       --- Vélin explosif
     [322212] = true,       --- Méfiance croissante
     [323551] = true,       --- Résidu (boss)
     [328494] = true,       --- Anima touché par le vice (boss)
@@ -324,6 +324,16 @@ SM.Spells = {
     [329518] = true,       --- Geyser incendiaire
     [341254] = true,       --- Plumage fumant
     [328579] = true,       --- Vestiges fumants
+
+       --- Conseille du sang
+    [330848] = true,       --- Faux pas
+
+       --- Fangepoing
+    [335295] = true,       --- Chaine fracassante
+    [331212] = true,       --- Charge insouciante
+
+       --- Sire denathrius
+    [330137] = true,       --- Massacre
 }
 
 SM.SpellsNoTank = {
@@ -346,6 +356,9 @@ SM.SpellsNoTank = {
        --- Salut du roi-soleil
     [326455] = true,       --- Frappe flamboyante
     [326456] = true,       --- Vestiges incandescents
+
+       --- Fangepoig
+    [335297] = true,       --- Poings géants          
 }
 
 SM.Auras = {
