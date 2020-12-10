@@ -164,6 +164,12 @@ SM.CustomDisplayAuras = {
 
 -- List spell to track
 SM.Spells = {
+
+    -- Affixes
+	[209862] = 20,		-- Volcanic Plume (Environment)
+	[226512] = 20,		-- Sanguine Ichor (Environment)
+	[240448] = 20,      -- Quaking (Environment)
+
  	--- Mists of Turna Scithe
     [321968] = true,      --- Pollen-stupéfiant
     [323137] = true,      --- Pollen-stupéfiant (boss 1)
@@ -171,6 +177,7 @@ SM.Spells = {
     [331721] = true,      --- Déluge de lances
     [340304] = true,      --- Sécrétions empoisonnées
     [340311] = true,      --- Bond écrasant
+    [340300] = true,      --- Langue fouetteuse
     [321828] = true,      --- Trois petits chats (boss 2)
     [336759] = true,      --- Balle aux prisonniers (boss 2)
     [321893] = true,      --- Explosion givrante (boss 2)
@@ -303,6 +310,7 @@ SM.Spells = {
     [342863] = true,       --- Hurlement résonnant
     [342923] = true,       --- Descente
     [330711] = true,       --- Cri assourdissant
+    [340324] = true,       --- icho sangain
 
        --- Altimor le Veneur
     [334404] = true,       --- Tir à dispersion
@@ -341,7 +349,7 @@ SM.SpellsNoTank = {
     [317943] = true,       --- Balayage
 
     --- Mists of tirna Scithe
-    [340300] = true,       --- Langue fouetteuse
+
 
     --- Sanguine Depths
     [326997] = true,       --- Puissant balayage
