@@ -166,9 +166,9 @@ SM.CustomDisplayAuras = {
 SM.Spells = {
 
     -- Affixes
-	[209862] = 20,		-- Volcanic Plume (Environment)
-	[226512] = 20,		-- Sanguine Ichor (Environment)
-	[240448] = 20,      -- Quaking (Environment)
+	[209862] = true,		-- Volcanic Plume (Environment)
+	[226512] = true,		-- Sanguine Ichor (Environment)
+	[240448] = true,      -- Quaking (Environment)
 
  	--- Mists of Turna Scithe
     [321968] = true,      --- Pollen-stupéfiant
