@@ -172,6 +172,7 @@ SM.Spells = {
 
  	--- Mists of Turna Scithe
     [321968] = true,      --- Pollen-stupéfiant
+    [325027] = true,      --- Explosion de ronces
     [323137] = true,      --- Pollen-stupéfiant (boss 1)
     [323250] = true,      --- Flaque d'anima (boss 1)
     [331721] = true,      --- Déluge de lances
@@ -181,6 +182,7 @@ SM.Spells = {
     [321828] = true,      --- Trois petits chats (boss 2)
     [336759] = true,      --- Balle aux prisonniers (boss 2)
     [321893] = true,      --- Explosion givrante (boss 2)
+    [326308] = true,      --- Flaque de décomposition
     [326022] = true,      --- Globule d'acide
     [322655] = true,      --- Expulsion d'acide (boss 3)
     [322654] = true,      --- Expulsion d'acide (boss 3)
@@ -195,6 +197,7 @@ SM.Spells = {
     [328729] = true,      --- Lotus noir
     [332672] = true,      --- Tempete de lames
     [323118] = true,      --- Barrage de sang (boss)
+    [320834] = true,      --- Piège téléporteur (boss)
     [331933] = true,      --- Détraqué
     [331398] = true,      --- Condensateur instable
     [332157] = true,      --- Accélération
@@ -206,6 +209,7 @@ SM.Spells = {
     [340026] = true,      --- Gémissement de peine
     [320727] = true,      --- Onde explosive déplacée (boss)
     [334913] = true,      --- Maitre de la mort (boss)
+    [327427] = true,      --- Empire brisé (boss)
     [325691] = true,      --- Effondrement cosmique (boss)
 
     --- Halls of atonement
@@ -311,6 +315,7 @@ SM.Spells = {
     [342923] = true,       --- Descente
     [330711] = true,       --- Cri assourdissant
     [340324] = true,       --- icho sangain
+    [343005] = true,       --- Balayage aveugle
 
        --- Altimor le Veneur
     [334404] = true,       --- Tir à dispersion
@@ -359,7 +364,6 @@ SM.SpellsNoTank = {
     
     --- Château Nathria
        --- Hurlaile
-    [343005] = true,       --- Balayage aveugle
 
        --- Salut du roi-soleil
     [326455] = true,       --- Frappe flamboyante
