@@ -168,7 +168,8 @@ SM.Spells = {
     -- Affixes
 	[209862] = true,		-- Volcanic Plume (Environment)
 	[226512] = true,		-- Sanguine Ichor (Environment)
-	[240448] = true,      -- Quaking (Environment)
+    [240448] = true,        -- Quaking (Environment)
+    [343520] = true,        -- Tourbillonnant (Environment)
 
  	--- Mists of Turna Scithe
     [321968] = true,      --- Pollen-stupéfiant
