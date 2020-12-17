@@ -322,7 +322,7 @@ SM.Spells = {
     [334404] = true,       --- Tir à dispersion
 
        --- Artificier Xy'mox
-    [329458] = true,       --- Faille explosive
+    [329256] = true,       --- Faille explosive
     [329770] = true,       --- Racine d’extinction
     [328880] = true,       --- Tranchant d’annihilation
 
