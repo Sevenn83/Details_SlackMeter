@@ -341,6 +341,7 @@ SM.Spells = {
 
        --- Conseille du sang
     [330848] = true,       --- Faux pas
+    [327619] = true,       --- Valse de sang
 
        --- Fangepoing
     [335295] = true,       --- Chaine fracassante
