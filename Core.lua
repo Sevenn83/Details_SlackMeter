@@ -170,6 +170,7 @@ SM.Spells = {
 	[226512] = true,		-- Sanguine Ichor (Environment)
     [240448] = true,        -- Quaking (Environment)
     [343520] = true,        -- Tourbillonnant (Environment)
+    [342494] = true, 		-- Belligerent Boast(Season 1 Pridefull)
 
  	--- Mists of Turna Scithe
     [321968] = true,      --- Pollen-stupéfiant
@@ -208,15 +209,18 @@ SM.Spells = {
     [323136] = true,      --- Tempête stellaire d'anima
     [345498] = true,      --- Tempête stellaire d'anima
     [340026] = true,      --- Gémissement de peine
+    [320830] = true,      --- Mechanical Bomb Squirrel
+    [323992] = true,      --- Echo Finger Laser X-treme (Millificent Manastorm)
+    [320723] = true,	  --- Displaced Blastwave (Dealer Xy'exa)
     [320727] = true,      --- Onde explosive déplacée (boss)
     [334913] = true,      --- Maitre de la mort (boss)
     [327427] = true,      --- Empire brisé (boss)
     [325691] = true,      --- Effondrement cosmique (boss)
+    [335000] = true,	  --- Stellar cloud (Mueh'zala)
 
     --- Halls of atonement
     [325523] = true,       --- Poussée mortelle
     [325799] = true,       --- Tir rapide
-    [346866] = true,       --- Souffle de pierre
     [326440] = true,       --- Secousse de vice
     [322945] = true,       --- Projection de débris (boss)
     [324044] = true,       --- Lumière viciée réfractée (boss)
@@ -274,7 +278,6 @@ SM.Spells = {
     [334563] = true,       --- Piège volatil
     [320991] = true,       --- Elan retentissant
     [321401] = true,       --- Explosion gloutonne
-    [322429] = true,       --- Taillade tranchante
     [322418] = true,       --- Crevasse rocheuse
     [334615] = true,       --- Entaille circulaire
     [334378] = true,       --- Vélin explosif
@@ -285,14 +288,23 @@ SM.Spells = {
 
     --- Spires of ascension
     [327413] = true,       --- Poing rebelle
-    [336444] = true,       --- Crescendo
     [331251] = true,       --- Connexion profonde (boss)
     [324370] = true,       --- Barrage atténué (boss)
     [321009] = true,       --- Lance chargée (boss)
     [323786] = true,       --- Taillade rapide
     [323645] = true,       --- Bave touchée par l'antre
+    [336447] = true,       --- Crashing Strike (Forsworn Squad-Leader)
+    [323740] = true,       --- Impact (Forsworn Squad-Leader)
     [324141] = true,       --- Sombre trait (boss) 
+    [324608] = true,       --- Piétinement chargé (boss)
     [324444] = true,       --- Munition empyréenne (Boss)
+    [336444] = true,       --- Crescendo (Forsworn Helion)
+    [328466] = true,       --- Charged Spear (Lakesis / Klotos)
+    [336420] = true,       --- Diminuendo (Klotos / Lakesis)
+    [321034] = true,       --- Charged Spear (Kin-Tara)
+    [324141] = true,       --- Dark Bolt (Ventunax)
+    [324154] = true,       --- Dark Stride (Venturax)
+    [323943] = true,       --- Run Through (Devos)
     [334625] = true,       --- Détonation abyssale (Boss)
 
     --- The Necrotic Wake
@@ -357,9 +369,15 @@ SM.SpellsNoTank = {
 
     --- Mists of tirna Scithe
 
+	-- Spires of Ascension
+	[320966] = true,       --- Overhead Slash (Kin-Tara)
+
+    --- Hall of Atonement 
+    [346866] = true,       --- Souffle de pierre
+    [326997] = true,       --- Puissant balayage
 
     --- Sanguine Depths
-    [326997] = true,       --- Puissant balayage
+    [322429] = true,       --- Taillade tranchante
 
     --- The Necrotic Wake
     [333485] = true,       --- Nuage infectieux
