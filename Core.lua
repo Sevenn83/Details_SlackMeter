@@ -412,6 +412,11 @@ SM.AurasNoTank = {
     [333729] = true,      --- Garde-troll
 }
 
+
+SM.Swings = {
+    [174773] = true, -- Spiteful Shade
+}
+
 -- Public APIs
 
 function Engine:GetRecord(combatID, playerGUID)
@@ -458,7 +463,6 @@ function SM:COMBAT_LOG_EVENT_UNFILTERED()
 		SM:SpellDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, sAmount)
     elseif eventPrefix:match("^SWING") and eventSuffix == "DAMAGE" then
         local aAmount, aOverkill, aSchool, aResisted, aBlocked, aAbsorbed, aCritical, aGlancing, aCrushing, aOffhand, _ = select(12,CombatLogGetCurrentEventInfo())
-        --- Not implemented
 		SM:SwingDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, aAmount)
 	elseif eventPrefix:match("^SPELL") and eventSuffix == "MISSED" then
 		local spellId, spellName, spellSchool, missType, isOffHand, mAmount  = select(12,CombatLogGetCurrentEventInfo())
@@ -474,116 +478,84 @@ function SM:COMBAT_LOG_EVENT_UNFILTERED()
 	end
 end
 
-function SM:RecordTarget(unitGUID, targetGUID)
-    if not self.current then return end
-
-    self:Debug("%s target %s in combat %s", unitGUID, targetGUID, self.current)
-
-    if not self.db[self.current] then self.db[self.current] = {} end
-    if not self.db[self.current][unitGUID] then self.db[self.current][unitGUID] = {} end
-    if not self.db[self.current][unitGUID][targetGUID] then self.db[self.current][unitGUID][targetGUID] = 0 end
-
-    if self.db[self.current][unitGUID][targetGUID] ~= 1 and self.db[self.current][unitGUID][targetGUID] ~= 3 then
-        self.db[self.current][unitGUID][targetGUID] = self.db[self.current][unitGUID][targetGUID] + 1
-        self.db[self.current][unitGUID].target = (self.db[self.current][unitGUID].target or 0) + 1
-
-        -- update overall
-        if not self.db[self.overall] then self.db[self.overall] = {} end
-        if not self.db[self.overall][unitGUID] then self.db[self.overall][unitGUID] = {} end
-
-        self.db[self.overall][unitGUID].target = (self.db[self.overall][unitGUID].target or 0) + 1
+function SM:EnsureUnitData(combatNumber, unitGUID)
+    if not self.db[combatNumber] then
+        self.db[combatNumber] = {}
     end
+    if not self.db[combatNumber][unitGUID] then
+        self.db[combatNumber][unitGUID] = {sum = 0, cnt = 0, spells = {}, auras = {}, auracnt = 0}
+    end
+end
+
+function SM:EnsureSpellData(combatNumber, unitGUID, spellId)
+    SM:EnsureUnitData(combatNumber, unitGUID)
+    if not self.db[combatNumber][unitGUID].spells then
+        self.db[combatNumber][unitGUID].spells = {}
+    end
+    if not self.db[combatNumber][unitGUID].spells[spellId] then
+        self.db[combatNumber][unitGUID].spells[spellId] = {cnt = 0, sum = 0}
+    end
+end
+
+function SM:EnsureAuraData(combatNumber, unitGUID, spellId)
+    SM:EnsureUnitData(combatNumber, unitGUID)
+    if not self.db[combatNumber][unitGUID].auras then
+        self.db[combatNumber][unitGUID].auras = {}
+    end
+    if not self.db[combatNumber][unitGUID].auras[spellId] then
+        self.db[combatNumber][unitGUID].auras[spellId] = {cnt = 0}
+    end
+end
+
+function SM:RecordSpellDamage(unitGUID, spellId, aAmount)
+    SM:EnsureSpellData(self.current, unitGUID, spellId)
+    SM:EnsureSpellData(self.overall, unitGUID, spellId)
+
+    local registerHit = function(where)
+        where.sum = where.sum + aAmount
+        where.cnt = where.cnt + 1
+        where.spells[spellId].sum = where.spells[spellId].sum + aAmount
+        where.spells[spellId].cnt = where.spells[spellId].cnt + 1
+    end
+
+    registerHit(self.db[self.overall][unitGUID])
+    registerHit(self.db[self.current][unitGUID])
+end
+
+function SM:RecordAuraHit(unitGUID, spellId)
+    SM:EnsureAuraData(self.current, unitGUID, spellId)
+    SM:EnsureAuraData(self.overall, unitGUID, spellId)
+
+    local registerHit = function(where)
+        where.auracnt = where.auracnt + 1
+        where.auras[spellId].cnt = where.auras[spellId].cnt + 1
+    end
+
+    registerHit(self.db[self.overall][unitGUID])
+    registerHit(self.db[self.current][unitGUID])
 end
 
 function SM:SpellDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, aAmount)
     local unitGUID = dstGUID
     if (SM.Spells[spellId] or (SM.SpellsNoTank[spellId] and UnitGroupRolesAssigned(dstName) ~= "TANK")) and UnitIsPlayer(dstName) then
-        if not self.db[self.current] then self.db[self.current] = {} end
-        if not self.db[self.current][unitGUID] then self.db[self.current][unitGUID] = {
-            sum = 0,
-            cnt = 0,
-            spells = {},
-            auras = {},
-            auracnt = 0
-        } end
-        if not self.db[self.current][unitGUID].spells then
-            self.db[self.current][unitGUID].spells = {}
-        end
-        if not self.db[self.current][unitGUID].spells[spellId] then self.db[self.current][unitGUID].spells[spellId] = {
-            cnt = 0,
-            sum = 0
-        } end
+        SM:RecordSpellDamage(unitGUID, spellId, aAmount)
+    end
+end
 
-        self:Debug("%s get hit by spell %s", unitGUID, self.current)
+function SM:SwingDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, aAmount)
+    local unitGUID = dstGUID
+    local meleeSpellId = 260421
 
-        self.db[self.current][unitGUID].sum = self.db[self.current][unitGUID].sum + aAmount
-        self.db[self.current][unitGUID].cnt = self.db[self.current][unitGUID].cnt + 1
-        self.db[self.current][unitGUID].spells[spellId].sum = self.db[self.current][unitGUID].spells[spellId].sum + aAmount
-        self.db[self.current][unitGUID].spells[spellId].cnt = self.db[self.current][unitGUID].spells[spellId].cnt + 1
-
-        -- update overall
-        if not self.db[self.overall] then self.db[self.overall] = {} end
-        if not self.db[self.overall][unitGUID] then self.db[self.overall][unitGUID] = {
-            sum = 0,
-            cnt = 0,
-            spells = {},
-            auras = {},
-            auracnt = 0
-        } end
-        if not self.db[self.overall][unitGUID].spells then
-            self.db[self.overall][unitGUID].spells = {}
-        end
-        if not self.db[self.overall][unitGUID].spells[spellId] then self.db[self.overall][unitGUID].spells[spellId] = {
-            cnt = 0,
-            sum = 0
-        } end
-
-        self.db[self.overall][unitGUID].sum = self.db[self.overall][unitGUID].sum + aAmount
-        self.db[self.overall][unitGUID].cnt = self.db[self.overall][unitGUID].cnt + 1
-        self.db[self.overall][unitGUID].spells[spellId].sum = self.db[self.overall][unitGUID].spells[spellId].sum + aAmount
-        self.db[self.overall][unitGUID].spells[spellId].cnt = self.db[self.overall][unitGUID].spells[spellId].cnt + 1
-	end
+    if (SM.Swings[SM:srcGUIDtoID(srcGUID)] and UnitIsPlayer(dstName)) then
+        SM:RecordSpellDamage(unitGUID, meleeSpellId, aAmount)
+    end
 end
 
 function SM:AuraApply(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName, spellSchool, auraType, auraAmount)
     local unitGUID = dstGUID
-    if (SM.Auras[spellId] or (SM.AurasNoTank[spellId] and UnitGroupRolesAssigned(dstName) ~= "TANK")) and UnitIsPlayer(dstName)  then
-        if not self.db[self.current] then self.db[self.current] = {} end
-        if not self.db[self.current][unitGUID] then self.db[self.current][unitGUID] = {
-            sum = 0,
-            cnt = 0,
-            spells = {},
-            auras = {},
-            auracnt = 0
-        } end
-        if not self.db[self.current][unitGUID].auras[spellId] then self.db[self.current][unitGUID].auras[spellId] = {
-            cnt = 0
-        } end
-
-        self:Debug("%s get hit by aura %s", unitGUID, self.current)
-
-        self.db[self.current][unitGUID].auracnt = self.db[self.current][unitGUID].auracnt + 1
-        self.db[self.current][unitGUID].auras[spellId].cnt = self.db[self.current][unitGUID].auras[spellId].cnt + 1
-
-        -- update overall
-        if not self.db[self.overall] then self.db[self.overall] = {} end
-        if not self.db[self.overall][unitGUID] then self.db[self.overall][unitGUID] = {
-            sum = 0,
-            cnt = 0,
-            spells = {},
-            auras = {},
-            auracnt = 0
-        } end
-        if not self.db[self.overall][unitGUID].auras[spellId] then self.db[self.overall][unitGUID].auras[spellId] = {
-            cnt = 0
-        } end
-        
-        self.db[self.overall][unitGUID].auracnt = self.db[self.overall][unitGUID].auracnt + 1
-        self.db[self.overall][unitGUID].auras[spellId].cnt = self.db[self.overall][unitGUID].auras[spellId].cnt + 1
-	end
-end
-
-function SM:SwingDamage(timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, aAmount)
+    if (SM.Auras[spellId] or (SM.AurasNoTank[spellId] and UnitGroupRolesAssigned(dstName) ~= "TANK")) and UnitIsPlayer(dstName) then
+        SM:RecordAuraHit(unitGUID, spellId)
+    end
 end
 
 function SM:RecordHit(unitGUID, targetGUID)
@@ -813,4 +785,14 @@ function SM:OnInitialize()
     self:RegisterEvent('CHALLENGE_MODE_START', 'InitDataCollection')
 
     self:SecureHook(Details, 'StartMeUp', 'LoadHooks')
+end
+
+
+function SM:srcGUIDtoID(srcGUID)
+    local sep = "-"
+    local t = {}
+    for str in string.gmatch(srcGUID, "([^" .. sep .. "]+)") do
+        table.insert(t, str)
+    end
+    return tonumber(t[#t - 1])
 end
