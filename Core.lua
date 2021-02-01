@@ -255,7 +255,6 @@ SM.Spells = {
 
     --- Plaguefall
     [330404] = true,       --- Frappe des ailes
-    [328660] = true,       --- Gelée jaillissantes
     [330513] = true,       --- Champignon funeste
     [320072] = true,       --- Bassin toxique
     [319120] = true,       --- Bile putride
@@ -296,14 +295,12 @@ SM.Spells = {
     [336447] = true,       --- Crashing Strike (Forsworn Squad-Leader)
     [323740] = true,       --- Impact (Forsworn Squad-Leader)
     [324141] = true,       --- Sombre trait (boss) 
-    [324608] = true,       --- Piétinement chargé (boss)
     [324444] = true,       --- Munition empyréenne (Boss)
     [336444] = true,       --- Crescendo (Forsworn Helion)
     [328466] = true,       --- Charged Spear (Lakesis / Klotos)
     [336420] = true,       --- Diminuendo (Klotos / Lakesis)
     [321034] = true,       --- Charged Spear (Kin-Tara)
     [324141] = true,       --- Dark Bolt (Ventunax)
-    [324154] = true,       --- Dark Stride (Venturax)
     [323943] = true,       --- Run Through (Devos)
     [334625] = true,       --- Détonation abyssale (Boss)
 
@@ -337,6 +334,8 @@ SM.Spells = {
     [329256] = true,       --- Faille explosive
     [329770] = true,       --- Racine d’extinction
     [328880] = true,       --- Tranchant d’annihilation
+    [342777] = true,       --- Graines d’éradication
+    [342777] = true,       --- Graines d’éradication
 
        --- Dame Inerva Sombreveine
     [329618] = true,       --- Volatilité déchaînée
@@ -370,7 +369,8 @@ SM.SpellsNoTank = {
     --- Mists of tirna Scithe
 
 	-- Spires of Ascension
-	[320966] = true,       --- Overhead Slash (Kin-Tara)
+    [320966] = true,       --- Overhead Slash (Kin-Tara)
+    [324608] = true,       --- Piétinement chargé (boss)
 
     --- Hall of Atonement 
     [346866] = true,       --- Souffle de pierre
@@ -381,6 +381,9 @@ SM.SpellsNoTank = {
 
     --- The Necrotic Wake
     [333485] = true,       --- Nuage infectieux
+	
+	--- Plaguefall
+	[328660] = true,       --- Gelée jaillissantes
     
     --- Château Nathria
        --- Hurlaile
